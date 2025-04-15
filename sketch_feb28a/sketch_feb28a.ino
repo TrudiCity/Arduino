@@ -25,14 +25,14 @@ void thread_manualMode(){
       break;
 
     case OFF:
-      digitalWrite(relayPin, LOW); 
-      digitalWrite(startSig, LOW); 
+      digitalWrite(relayPin, HIGH); 
+      digitalWrite(startSig, HIGH); 
       manual_mode = IDLE;
       break;
 
     case ON:
-      digitalWrite(relayPin, HIGH); 
-      digitalWrite(startSig, HIGH); 
+      digitalWrite(relayPin, LOW); 
+      digitalWrite(startSig, LOW); 
       manual_mode = IDLE;
       break;
 
@@ -66,8 +66,8 @@ void thread_taktgeber(){
       }
       else if (millis() - warteSeit >= offTime) 
       {
-        digitalWrite(relayPin, HIGH); 
-        digitalWrite(startSig, HIGH); 
+        digitalWrite(relayPin, LOW); 
+        digitalWrite(startSig, LOW); 
         warteSeit = warteSeit + offTime;
         zustand = EIN; 
       }          
@@ -81,8 +81,8 @@ void thread_taktgeber(){
 
       if (millis() - warteSeit >= onTime) 
       {
-        digitalWrite(relayPin, LOW); 
-        digitalWrite(startSig, LOW); 
+        digitalWrite(relayPin, HIGH); 
+        digitalWrite(startSig, HIGH); 
         warteSeit = warteSeit + onTime;
         zustand = AUS; 
       }          
@@ -95,8 +95,8 @@ void thread_taktgeber(){
       }
 
       if (pause_flag == false){
-        digitalWrite(relayPin, HIGH); 
-        digitalWrite(startSig, HIGH); 
+        digitalWrite(relayPin, LOW); 
+        digitalWrite(startSig, LOW); 
 //        warteSeit = warteSeit + onTime;
 //        zustand = EIN; 
         zustand = INIT; 
