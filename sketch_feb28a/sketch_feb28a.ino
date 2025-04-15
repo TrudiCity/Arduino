@@ -40,7 +40,7 @@ void thread_manualMode(){
 }
 
 void thread_taktgeber(){
-  static enum {INIT, AUS, EIN, PAUSE} zustand = INIT;
+  static enum {INIT, AUS, EIN, EIN_NACH_PAUSE, PAUSE} zustand = INIT;
   static unsigned long int warteSeit = 0;
   static int caseFlag = 0;
 
@@ -49,7 +49,7 @@ void thread_taktgeber(){
     case INIT:
       if (caseFlag == 0){
         Serial.println("INIT");
-        caseFlag += 1;
+        caseFlag += 1;      // caseFlag = 1
       }
       warteSeit = millis();
       zustand = AUS;
@@ -58,7 +58,7 @@ void thread_taktgeber(){
     case AUS:   
       if ((caseFlag == 1) && !(caseFlag == 2)){
         Serial.println("AUS");
-        caseFlag += 1;
+        caseFlag += 1;      // caseFlag = 2
       }
 
       if (pause_flag == true){
@@ -76,7 +76,7 @@ void thread_taktgeber(){
     case EIN: 
       if (caseFlag == 2){
         Serial.println("EIN");
-        caseFlag += 1;
+        caseFlag += 1;      // caseFlag = 3
       }
 
       if (millis() - warteSeit >= onTime) 
@@ -88,19 +88,30 @@ void thread_taktgeber(){
       }          
       break;
 
+    case EIN_NACH_PAUSE:
+      if (caseFlag == 0){
+        Serial.println("EIN_NACH_PAUSE");
+        caseFlag += 1;      // caseFlag = 1
+      }
+
+      digitalWrite(relayPin, HIGH); 
+      digitalWrite(startSig, HIGH); 
+      warteSeit = millis();
+      zustand = AUS;
+      break;
+
     case PAUSE:
       if (caseFlag == 3){
         Serial.println("PAUSE");
-        caseFlag += 1;
+        caseFlag += 1;      // caseFlag = 4
       }
 
       if (pause_flag == false){
         digitalWrite(relayPin, LOW); 
         digitalWrite(startSig, LOW); 
-//        warteSeit = warteSeit + onTime;
-//        zustand = EIN; 
-        zustand = INIT; 
-        caseFlag = 0;
+//        zustand = INIT; 
+        zustand = EIN_NACH_PAUSE;
+        caseFlag = 0;       // caseFlag = 0
       }
       break;
   }
@@ -115,24 +126,26 @@ void thread_serial(){
     Serial.flush();  // Eingangspuffer der seriellen Schnittstelle leeren
     if (cmd == "P"){
       pause_flag = true;
-      Serial.println(cmd + " " + pause_flag);
+      //Serial.println(cmd + " " + pause_flag);
     } else if (cmd == "p"){
       pause_flag = true;
-      Serial.println(cmd + " " + pause_flag);
+      //Serial.println(cmd + " " + pause_flag);
     } else if (cmd == "W"){
       pause_flag = false;
-      Serial.println(cmd + " " + pause_flag);
+      //Serial.println(cmd + " " + pause_flag);
     } else if (cmd == "w"){
       pause_flag = false;
-      Serial.println(cmd + " " + pause_flag);
+      //Serial.println(cmd + " " + pause_flag);
     } else if (cmd == "mOn"){
       manual_mode = ON;
     } else if (cmd == "mOff"){
       manual_mode = OFF;
     } else if ((cmd == "a") || (cmd == "A")){
       manual_flag = false;
+      Serial.println("AUTOMATIK-MODE");
     } else if ((cmd == "m") || (cmd == "M")){
       manual_flag = true;
+      Serial.println("MANUAL-MODE");
     } else {
       // hier String zerlegen für Eingaben von on... of... Time
       while (index < cmd.length() && !isDigit(cmd[index])){
